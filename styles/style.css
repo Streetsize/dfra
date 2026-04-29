@@ -164,6 +164,8 @@ section {
 }
 
 .btn {
+    display: inline-block; /* Agregamos esto */
+	margin-top: 1rem;      /* Agregamos esto para darle aire respecto al texto */
     padding: 0.8rem 2rem;
     background-color: var(--primary-blue);
     color: white;
