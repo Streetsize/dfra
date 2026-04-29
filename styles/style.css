@@ -336,37 +336,83 @@
         }
 
         /* Responsive */
+/* Botón secundario para las tarjetas */
+ /* Botón secundario para las tarjetas */
+.btn-outline {
+    display: inline-block;
+    padding: 0.5rem 1.2rem;
+    color: var(--primary-blue);
+    background-color: transparent;
+    border: 2px solid var(--primary-blue);
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.btn-outline:hover {
+    background-color: var(--primary-blue);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.2);
+}
+
+/* --- ESTILOS BASE DEL MENÚ HAMBURGUESA --- */
+.hamburger {
+    display: none; /* Oculto en PC */
+    cursor: pointer;
+    gap: 5px;
+    flex-direction: column;
+    z-index: 101;
+}
+
+.hamburger .bar {
+    width: 25px;
+    height: 3px;
+    background-color: var(--primary-blue);
+    border-radius: 5px;
+    transition: all 0.3s ease;
+}
+
+/* --- REGLAS PARA CELULARES (IMPORTANTE: Todo lo de móvil va adentro de estas llaves) --- */
 @media (max-width: 768px) {
     .hamburger {
-        display: flex; /* Mostramos las 3 rayitas en móvil */
+        display: flex; /* Mostramos las 3 rayitas */
     }
 
-    /* El menú pasa a ser un bloque que se oculta a la izquierda */
     .nav-links {
         position: absolute;
-        top: 100%; /* Se ubica justo debajo de la barra blanca */
-        left: -100%; /* Lo escondemos fuera de la pantalla */
+        top: 100%; 
+        left: -100%; /* Escondido a la izquierda */
         width: 100%;
         background-color: var(--card-bg);
-        flex-direction: column;
+        
+        /* ESTO FUERZA EL ORDEN VERTICAL */
+        display: flex;
+        flex-direction: column !important; 
         align-items: center;
+        
         padding: 2rem 0;
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        transition: left 0.3s ease; /* Efecto de deslizamiento */
+        transition: left 0.3s ease;
+        z-index: 100;
     }
 
-    /* Esta clase '.active' se la vamos a poner con JavaScript al hacer clic */
     .nav-links.active {
-        left: 0; /* Lo traemos a la pantalla */
+        left: 0; /* Aparece al hacer clic */
     }
 
     .nav-links a {
-        margin: 1.5rem 0; /* Separamos los links verticalmente */
-        margin-left: 0;
-        font-size: 1.1rem;
+        margin: 1rem 0 !important; /* Espacio arriba y abajo */
+        margin-left: 0 !important; /* Quitamos el margen lateral de PC */
+        font-size: 1.2rem;
+        display: block;
+        width: 100%;
+        text-align: center;
     }
 
-    /* --- Animación de la hamburguesa transformándose en una "X" --- */
+    /* Animación de la X */
     .hamburger.active .bar:nth-child(1) {
         transform: translateY(8px) rotate(45deg);
     }
@@ -377,47 +423,10 @@
         transform: translateY(-8px) rotate(-45deg);
     }
 
-    /* Ajustes de texto para móvil */
     #inicio h1 {
         font-size: 2.5rem;
     }
     .section-title {
         font-size: 2rem;
     }
-}
-/* Botón secundario para las tarjetas */
-        .btn-outline {
-            display: inline-block;
-            padding: 0.5rem 1.2rem;
-            color: var(--primary-blue);
-            background-color: transparent;
-            border: 2px solid var(--primary-blue);
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-        }
-
-        .btn-outline:hover {
-            background-color: var(--primary-blue);
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.2);
-        }
-		
-		/* --- ESTILOS DEL MENÚ HAMBURGUESA --- */
-.hamburger {
-    display: none; /* Oculto en PC */
-    cursor: pointer;
-    gap: 5px;
-    flex-direction: column;
-}
-
-.hamburger .bar {
-    width: 25px;
-    height: 3px;
-    background-color: var(--primary-blue);
-    border-radius: 5px;
-    transition: all 0.3s ease;
 }
