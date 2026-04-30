@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Título de la Publicación - Med. Romero Diego</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚕️</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles/style.css" />
+    <style>
+        .post-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 4rem 5%;
+        }
+        .post-meta {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 20px;
+        }
+        .audience-badge {
+            background-color: #d1fae5; /* Verde muy claro */
+            border-left: 5px solid var(--accent-green);
+            padding: 1rem 1.5rem;
+            margin: 2rem 0;
+            border-radius: 4px;
+            color: #065f46; /* Verde oscuro para contraste */
+            font-weight: 600;
+        }
+        .audience-badge span {
+            font-weight: 400;
+            color: var(--text-main);
+        }
+        .post-content p {
+            margin-bottom: 1.5rem;
+            font-size: 1.15rem;
+            line-height: 1.8;
+            text-align: justify;
+        }
+		/* Estilos del Modal */
+		.modal-overlay {
+			display: none; /* Oculto por defecto */
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(15, 23, 42, 0.8); /* Fondo oscuro semitransparente */
+			backdrop-filter: blur(4px);
+			z-index: 1000;
+			justify-content: center;
+			align-items: center;
+		}
+
+		.modal-content {
+			background: white;
+			padding: 2.5rem;
+			border-radius: 16px;
+			max-width: 450px;
+			width: 90%;
+			text-align: center;
+			box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+			border-top: 6px solid var(--primary-blue);
+			animation: slideUp 0.4s ease-out;
+		}
+
+		@keyframes slideUp {
+			from { transform: translateY(20px); opacity: 0; }
+			to { transform: translateY(0); opacity: 1; }
+		}
+
+		.modal-content h3 {
+			margin-bottom: 1rem;
+			font-size: 1.5rem;
+		}
+
+		.modal-content p {
+			color: var(--text-main);
+			margin-bottom: 2rem;
+			line-height: 1.6;
+		}
+
+		.modal-content .btn {
+			width: 100%;
+			cursor: pointer;
+		}
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="../index.html#inicio" class="logo">DRFA</a>
+        <div class="hamburger">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </div>
+        <div class="nav-links">
+            <a href="../index.html#sobre-mi">Sobre mí</a>
+            <a href="../publicaciones.html">Publicaciones</a>
+            <a href="../index.html#formación">Formación</a>
+            <a href="#contacto">Contacto</a>
+        </div>
+    </nav>
+
+    <article class="post-container">
+        <header>
+            <h1 style="font-size: 2.8rem; margin-bottom: 0.5rem; line-height: 1.2;">Título de la Publicación</h1>
+            <p class="subtitle" style="font-size: 1.4rem; margin-bottom: 1.5rem;">Un subtítulo descriptivo que amplía la idea principal del artículo.</p>
+            
+            <div class="post-meta">
+                <span>📅 29 de Abril, 2026</span>
+                <span>✍️ Por Dr. Diego Romero</span>
+            </div>
+        </header>
+
+			<div class="audience-badge" id="badge-publico" data-tipo="general">
+				Público: <span>general</span>
+			</div>
+
+			<div id="modal-descargo" class="modal-overlay">
+				<div class="modal-content">
+					<div id="modal-icon" class="card-icon">⚠️</div>
+					<h3 id="modal-titulo">Aviso Importante</h3>
+					<p id="modal-texto"></p>
+					<button onclick="cerrarModal()" class="btn">He leído y entiendo</button>
+				</div>
+			</div>
+
+        <div class="post-content">
+            <p>Aquí comienza el cuerpo de tu publicación. Puedes usar los estilos que ya definimos en el CSS global. La tipografía <strong>Inter</strong> asegura una lectura cómoda tanto en escritorio como en dispositivos móviles.</p>
+            
+            <h3 style="margin: 2rem 0 1rem; color: var(--primary-blue);">Un subtítulo intermedio</h3>
+            <p>Puedes incluir análisis de datos, reflexiones sobre medicina comunitaria o detalles técnicos de tus proyectos de automatización. El diseño mantiene la limpieza visual para resaltar el contenido científico y profesional.</p>
+            
+            <blockquote style="border-left: 4px solid var(--primary-blue); padding-left: 1.5rem; font-style: italic; margin: 2rem 0; color: var(--text-muted);">
+                "La tecnología no reemplaza al médico, sino que potencia su capacidad de cuidar."
+            </blockquote>
+        </div>
+
+        <div style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid #e2e8f0;">
+            <a href="../publicaciones.html" class="btn-outline">← Volver a Publicaciones</a>
+        </div>
+    </article>
+
+    <footer id="contacto">
+        <div class="contact-container">
+            <h2>Hablemos</h2>
+            <div class="contact-info">
+                <p>Mendoza, Argentina</p>
+                <p>Correo: <a href="mailto:contacto@romeroanglat.com.ar">contacto@romeroanglat.com.ar</a></p>
+                <p>LinkedIn: <a href="https://www.linkedin.com/in/romeroanglat/">romeroanglat</a></p>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2026 Dr. Diego Romero. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <script src="../script.js"></script>
+	<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const badge = document.getElementById('badge-publico');
+    const tipo = badge.getAttribute('data-tipo');
+    const modal = document.getElementById('modal-descargo');
+    const texto = document.getElementById('modal-texto');
+    const titulo = document.getElementById('modal-titulo');
+
+    if (tipo === 'profesionales') {
+        titulo.innerText = "Aviso para Profesionales";
+        texto.innerText = "La información aquí contenida tiene fines académicos y de actualización técnica. Se recomienda verificar toda la información con literatura científica vigente antes de cualquier aplicación clínica.";
+        modal.style.display = 'flex';
+    } 
+    else if (tipo === 'general') {
+        titulo.innerText = "Información General";
+        texto.innerText = "Esta publicación es meramente informativa y no sustituye la consulta médica profesional. Ante cualquier duda, síntoma o decisión sobre su salud, consulte siempre a su médico de cabecera.";
+        // Cambiamos el color de borde a verde para público general
+        document.querySelector('.modal-content').style.borderTopColor = 'var(--accent-green)';
+        modal.style.display = 'flex';
+    }
+});
+
+function cerrarModal() {
+    document.getElementById('modal-descargo').style.display = 'none';
+}
+</script>
+</body>
+</html>

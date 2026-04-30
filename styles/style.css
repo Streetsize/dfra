@@ -264,7 +264,15 @@
             font-size: 2.5rem;
             margin-bottom: 1rem;
         }
-
+		
+		.card-estatica img {
+			width: 48px; 
+			height: 48px;          /* 1. Fijamos la altura para que todas ocupen lo mismo */
+			object-fit: contain;   /* 2. Evita que la imagen se estire o se aplaste */
+			display: block;
+			margin: 0 auto; 
+			margin-bottom: 20px;
+		}
         .card h3 {
             margin-bottom: 1rem;
             font-size: 1.3rem;
@@ -429,4 +437,56 @@
     .section-title {
         font-size: 2rem;
     }
+}
+/* Asegura espacio entre tarjetas incluso si fallara el gap del grid */
+.card, .card-estatica {
+    margin-bottom: 1.5rem;
+}
+
+/* En pantallas grandes (Desktop), el margen inferior no es tan necesario si hay grid, 
+pero en móviles es vital */
+@media (max-width: 768px) {
+    .card, .card-estatica {
+        margin-bottom: 2rem;
+    }
+}
+
+/* --- Estilos para el nuevo Footer --- */
+.social-links {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.social-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    background-color: #1e293b; /* Fondo oscuro sutil */
+    color: #f1f5f9; /* Color del icono */
+    border-radius: 50%; /* Hace que sea un círculo perfecto */
+    transition: all 0.3s ease;
+}
+
+.social-icon:hover {
+    background-color: #0284c7; /* Tu azul al pasar el mouse */
+    color: #ffffff;
+    transform: translateY(-3px); /* Pequeño saltito hacia arriba */
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);
+}
+
+.email-text a {
+    color: #f1f5f9;
+    font-size: 1.1rem;
+    font-weight: 500;
+    text-decoration: none;
+    letter-spacing: 0.5px;
+    transition: color 0.3s ease;
+}
+
+.email-text a:hover {
+    color: #0284c7;
 }
