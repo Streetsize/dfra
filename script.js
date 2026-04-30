@@ -1,3 +1,10 @@
+document.addEventListener("DOMContentLoaded", () => {
+    if (window.location.pathname.endsWith('.html')) {
+        const urlLimpia = window.location.pathname.replace(/\.html$/, '');
+        window.history.replaceState(null, '', urlLimpia + window.location.search + window.location.hash);
+    }
+});
+
 document.addEventListener("DOMContentLoaded", function() {
     
     // --- ANIMACIÓN DE TARJETAS ---
