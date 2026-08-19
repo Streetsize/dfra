@@ -307,7 +307,7 @@
             const provider = new firebase.auth.GoogleAuthProvider();
             try {
                 // Al hacer clic, abre la ventana. El onAuthStateChanged se encarga del resto.
-                await auth.signInWithPopup(provider);
+                await auth.signInWithRedirect(provider);
             } catch (error) {
                 alert("Error al iniciar con Google: " + error.message);
             }
