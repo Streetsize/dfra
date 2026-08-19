@@ -9,11 +9,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <!-- Librería Signature Pad -->
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+    
+    <!-- Scripts de Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
     <style>
-        /* ============================
-           VARIABLES Y ESTILOS BASE
-           ============================ */
+        /* VARIABLES Y ESTILOS BASE */
         :root {
             --primary: #1e4a6e;
             --primary-dark: #14344e;
@@ -25,71 +28,31 @@
             --border: #d2d8dc;
             --white: #ffffff;
         }
-
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        
-        body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-body);
-            color: var(--text-main);
-            line-height: 1.5;
-        }
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-body); color: var(--text-main); line-height: 1.5; }
 
-        /* ============================
-           LAYOUT PRINCIPAL (2 COLUMNAS)
-           ============================ */
-        .app-layout {
-            display: flex;
-            max-width: 1200px;
-            margin: 30px auto;
-            gap: 30px;
-            padding: 0 20px;
-            align-items: flex-start;
-        }
+        /* LAYOUT PRINCIPAL */
+        .app-layout { display: flex; max-width: 1200px; margin: 30px auto; gap: 30px; padding: 0 20px; align-items: flex-start; }
+        .form-section { flex: 1; background: var(--white); padding: 30px; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.05); }
+        .preview-section { flex: 1; position: sticky; top: 30px; display: flex; justify-content: center; }
 
-        .form-section {
-            flex: 1;
-            background: var(--white);
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.05);
-        }
-
-        .preview-section {
-            flex: 1;
-            position: sticky;
-            top: 30px;
-            display: flex;
-            justify-content: center;
-        }
-
-        /* ============================
-           WIZARD (PASO A PASO)
-           ============================ */
+        /* WIZARD Y FORMULARIO */
         .wizard-header { margin-bottom: 25px; border-bottom: 2px solid #eee; padding-bottom: 15px; }
         .wizard-header h2 { color: var(--primary); font-size: 1.5rem; }
         .step-indicator { font-size: 0.9rem; color: var(--text-muted); margin-top: 5px; }
-
         .step { display: none; animation: fadeIn 0.4s ease; }
         .step.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 8px; color: var(--primary-dark); }
-        .form-group input, .form-group select, .form-group textarea {
-            width: 100%; padding: 12px; border: 1px solid var(--border);
-            border-radius: 6px; font-size: 1rem; transition: border-color 0.3s;
-        }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 1rem; transition: border-color 0.3s; }
         .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--primary); }
-        
         .form-row { display: flex; gap: 15px; }
         .form-row .form-group { flex: 1; }
-
-        /* Lienzo de firma */
+        
         .signature-wrapper { position: relative; width: 100%; height: 160px; border: 2px dashed var(--border); border-radius: 6px; background: #fafafa; touch-action: none; }
         #signature-pad { position: absolute; left: 0; top: 0; width: 100%; height: 100%; cursor: crosshair; }
 
-        /* Botones de navegación */
         .navigation-buttons { display: flex; justify-content: space-between; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; }
         .btn { padding: 12px 24px; border: none; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; }
         .btn-prev { background: #e0e0e0; color: #555; }
@@ -98,39 +61,20 @@
         .btn-next:hover { background: var(--primary-dark); }
         .btn-clear { background: #fff; border: 1px solid #ccc; color: #555; padding: 6px 12px; font-size: 0.8rem; margin-top: 10px; }
 
-        /* ============================
-           VISTA PREVIA (ESTILO A4)
-           ============================ */
-        .a4-preview-container {
-            background: var(--white);
-            width: 100%;
-            max-width: 450px; /* Escala reducida del A4 */
-            aspect-ratio: 1 / 1.414; /* Proporción real A4 */
-            border-radius: 4px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
-            padding: 25px;
-            position: relative;
-            font-size: 10px; /* Fuente base pequeña para simular escala */
-            overflow: hidden;
-            border: 1px solid #eee;
-        }
-
+        /* VISTA PREVIA */
+        .a4-preview-container { background: var(--white); width: 100%; max-width: 450px; aspect-ratio: 1 / 1.414; border-radius: 4px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); padding: 25px; position: relative; font-size: 10px; overflow: hidden; border: 1px solid #eee; }
         .prev-header { display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: 2px solid var(--primary); padding-bottom: 10px; }
         .prev-doc-info h3 { color: var(--primary-dark); font-size: 1.4em; margin-bottom: 2px; }
         .prev-doc-info p { color: var(--text-muted); font-size: 0.9em; margin-bottom: 2px; }
-        
         .prev-badge { background: var(--primary); color: white; padding: 5px 15px; border-radius: 4px; text-align: center; height: fit-content; }
         .prev-badge strong { font-size: 1.2em; display: block; }
         .prev-badge span { font-size: 0.7em; }
-
         .prev-box { background: var(--box-bg); padding: 10px; border-radius: 4px; margin-bottom: 15px; }
         .prev-box.body-box { background: var(--box-bg2); border: 1px solid var(--border); min-height: 80px; }
         .prev-box-title { font-size: 0.8em; font-weight: bold; color: var(--text-muted); margin-bottom: 4px; }
         .prev-row { display: flex; justify-content: space-between; }
-        
         .prev-text { font-size: 1.1em; color: var(--text-main); white-space: pre-wrap; word-break: break-word;}
         .prev-title { font-size: 0.9em; font-weight: bold; color: var(--primary-dark); margin-bottom: 4px; }
-
         .prev-footer { position: absolute; bottom: 25px; left: 25px; right: 25px; }
         .prev-signature-area { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; }
         .prev-sig-box { width: 140px; text-align: center; }
@@ -138,100 +82,95 @@
         .prev-sig-line { border-top: 1px solid var(--text-muted); padding-top: 5px; font-size: 0.85em; font-weight: bold; }
         .prev-watermark { text-align: center; font-size: 0.7em; color: #ccc; border-top: 1px solid #eee; padding-top: 5px; }
 
-        /* Responsividad */
-        @media (max-width: 900px) {
-            .app-layout { flex-direction: column; }
-            .preview-section { position: relative; top: 0; width: 100%; }
-        }
+        @media (max-width: 900px) { .app-layout { flex-direction: column; } .preview-section { position: relative; top: 0; width: 100%; } }
     </style>
 </head>
 <body>
 
-    <div class="app-layout">
-        <!-- SECCIÓN IZQUIERDA: FORMULARIO WIZARD -->
+    <!-- PANTALLA DE ACCESO / REGISTRO -->
+    <div id="auth-section" style="max-width: 400px; margin: 60px auto; padding: 30px; background: #fff; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.05);">
+        <h2 style="color: #1e4a6e; margin-bottom: 20px; text-align: center;">Acceso Profesional</h2>
+        <form id="authForm">
+            <div class="form-group">
+                <label>Correo Electrónico:</label>
+                <input type="email" id="authEmail" required placeholder="dr@ejemplo.com">
+            </div>
+            <div class="form-group">
+                <label>Contraseña:</label>
+                <input type="password" id="authPassword" required placeholder="Mínimo 6 caracteres">
+            </div>
+            <!-- Campos de registro -->
+            <div id="registerFields" style="display: none;">
+                <div class="form-group"><label>Nombre y Apellido:</label><input type="text" id="authName" placeholder="Ej. Dr. Juan Pérez"></div>
+                <div class="form-group"><label>Especialidad:</label><input type="text" id="authSpecialty" placeholder="Ej. Médico Clínico"></div>
+                <div class="form-group"><label>Matrícula (MN/MP):</label><input type="text" id="authLicense" placeholder="Ej. 123456"></div>
+            </div>
+            <button type="submit" class="btn btn-next" style="width: 100%; margin-top: 10px;" id="authSubmitBtn">Ingresar</button>
+        </form>
+        <p style="text-align: center; margin-top: 15px; font-size: 0.9em;">
+            <a href="#" id="toggleAuthMode" style="color: #3498db; text-decoration: none;">¿No tienes cuenta? Solicitar acceso</a>
+        </p>
+    </div>
+
+    <!-- PANTALLA DE CUENTA EN REVISIÓN -->
+    <div id="pending-section" style="display: none; max-width: 500px; margin: 80px auto; text-align: center; padding: 40px; background: #fff; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.05);">
+        <h2 style="color: #e67e22; margin-bottom: 15px;">Cuenta en Revisión</h2>
+        <p style="color: #555; margin-bottom: 25px;">Por cuestiones de seguridad, un administrador debe verificar tus credenciales médicas antes de habilitar la emisión de recetas digitales.</p>
+        <button class="btn btn-prev" onclick="firebase.auth().signOut()">Cerrar Sesión</button>
+    </div>
+
+    <!-- APLICACIÓN PRINCIPAL -->
+    <div class="app-layout" id="app-layout" style="display: none;">
+        <!-- WIZARD -->
         <div class="form-section">
             <a href="index.html" style="color: var(--primary); text-decoration: none; font-size: 0.9rem; margin-bottom: 15px; display: inline-block;">&larr; Volver al Inicio</a>
-            
             <div class="wizard-header">
                 <h2>Generador de Documentos</h2>
                 <div class="step-indicator" id="step-indicator">Paso 1 de 3: Datos del Paciente</div>
             </div>
 
             <form id="medicalForm">
-                
-                <!-- PASO 1: Paciente -->
+                <!-- PASO 1 -->
                 <div class="step step-1 active" data-step="1">
-                    <div class="form-group">
-                        <label for="docType">Tipo de Documento:</label>
-                        <select id="docType" required>
-                            <option value="Rp">Rp (Receta Médica)</option>
-                            <option value="Sto">Sto (Solicitud de Prácticas / Estudios)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="patientName">Nombre y Apellido del Paciente:</label>
-                        <input type="text" id="patientName" required placeholder="Ej. Juan Pérez">
-                    </div>
+                    <div class="form-group"><label>Tipo de Documento:</label><select id="docType" required><option value="Rp">Rp (Receta Médica)</option><option value="Sto">Sto (Solicitud de Prácticas)</option></select></div>
+                    <div class="form-group"><label>Nombre y Apellido del Paciente:</label><input type="text" id="patientName" required placeholder="Ej. Juan Pérez"></div>
                     <div class="form-row">
-                        <div class="form-group">
-                            <label for="patientDni">DNI / Historia Clínica:</label>
-                            <input type="text" id="patientDni" required placeholder="Ej. 35123456">
-                        </div>
-                        <div class="form-group">
-                            <label for="obraSocial">Obra Social (Opcional):</label>
-                            <input type="text" id="obraSocial" placeholder="Ej. OSDE 210 / IOMA">
-                        </div>
+                        <div class="form-group"><label>DNI / HC:</label><input type="text" id="patientDni" required placeholder="Ej. 35123456"></div>
+                        <div class="form-group"><label>Obra Social (Opcional):</label><input type="text" id="obraSocial" placeholder="Ej. OSDE 210"></div>
                     </div>
                 </div>
-
-                <!-- PASO 2: Prescripción -->
+                <!-- PASO 2 -->
                 <div class="step step-2" data-step="2">
-                    <div class="form-group">
-                        <label for="prescription">Medicamentos / Prácticas solicitadas:</label>
-                        <textarea id="prescription" rows="6" required placeholder="Detalle los medicamentos con dosis o los estudios solicitados..."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="diagnosis">Diagnóstico:</label>
-                        <input type="text" id="diagnosis" required placeholder="Ej. Hipertensión arterial / Control">
-                    </div>
+                    <div class="form-group"><label>Medicamentos / Prácticas solicitadas:</label><textarea id="prescription" rows="6" required></textarea></div>
+                    <div class="form-group"><label>Diagnóstico:</label><input type="text" id="diagnosis" required></div>
                 </div>
-
-                <!-- PASO 3: Profesional y Firma -->
+                <!-- PASO 3 -->
                 <div class="step step-3" data-step="3">
                     <div class="form-row">
-                        <div class="form-group">
-                            <label for="doctorName">Nombre del Médico:</label>
-                            <input type="text" id="doctorName" required placeholder="Dr. Nombre Apellido">
-                        </div>
-                        <div class="form-group">
-                            <label for="doctorSpecialty">Especialidad:</label>
-                            <input type="text" id="doctorSpecialty" required placeholder="Ej. Médico Clínico">
-                        </div>
+                        <div class="form-group"><label>Nombre del Médico:</label><input type="text" id="doctorName" required></div>
+                        <div class="form-group"><label>Especialidad:</label><input type="text" id="doctorSpecialty" required></div>
                     </div>
-                    <div class="form-group">
-                        <label for="doctorLicense">Matrícula Profesional:</label>
-                        <input type="text" id="doctorLicense" required placeholder="MN: 123456 / MP: 654321">
-                    </div>
-                    
+                    <div class="form-group"><label>Matrícula:</label><input type="text" id="doctorLicense" required></div>
                     <div class="form-group">
                         <label>Firma Digital:</label>
-                        <div class="signature-wrapper">
-                            <canvas id="signature-pad"></canvas>
-                        </div>
+                        <div class="signature-wrapper"><canvas id="signature-pad"></canvas></div>
                         <button type="button" class="btn btn-clear" id="clearSignature">Limpiar Firma</button>
                     </div>
                 </div>
 
-                <!-- Navegación -->
+                <!-- NAVEGACIÓN Y BOTONES FINALES -->
                 <div class="navigation-buttons">
                     <button type="button" class="btn btn-prev" id="btn-prev" style="display: none;">Atrás</button>
-                    <button type="button" class="btn btn-next" id="btn-next">Siguiente</button>
-                    <button type="submit" class="btn btn-next" id="btn-submit" style="display: none; background: #27ae60;">Generar PDF</button>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end;">
+                        <button type="button" class="btn btn-next" id="btn-next">Siguiente</button>
+                        <button type="button" class="btn" id="btn-firmar-gob" style="display: none; background: #0072b8; color: white;" onclick="window.open('https://firmar.gob.ar/firmador/#/', '_blank')">Validar en Firmar.gob.ar ↗</button>
+                        <button type="submit" class="btn btn-next" id="btn-submit" style="display: none; background: #27ae60;">Generar PDF</button>
+                    </div>
                 </div>
             </form>
         </div>
 
-        <!-- SECCIÓN DERECHA: VISTA PREVIA A4 -->
+        <!-- VISTA PREVIA -->
         <div class="preview-section">
             <div class="a4-preview-container">
                 <div class="prev-header">
@@ -240,46 +179,26 @@
                         <p id="prev-doctorSpecialty">Especialidad</p>
                         <p>Matrícula: <span id="prev-doctorLicense">-</span></p>
                     </div>
-                    <div class="prev-badge">
-                        <strong id="prev-docType">Rp</strong>
-                        <span id="prev-docLabel">RECETA MÉDICA</span>
-                    </div>
+                    <div class="prev-badge"><strong id="prev-docType">Rp</strong><span id="prev-docLabel">RECETA MÉDICA</span></div>
                 </div>
-
                 <div class="prev-box">
                     <div class="prev-row">
-                        <div>
-                            <div class="prev-box-title">PACIENTE</div>
-                            <div class="prev-text" id="prev-patientName">Nombre del paciente</div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div class="prev-box-title">DNI / HC</div>
-                            <div class="prev-text" id="prev-patientDni">-</div>
-                        </div>
+                        <div><div class="prev-box-title">PACIENTE</div><div class="prev-text" id="prev-patientName">Nombre</div></div>
+                        <div style="text-align: right;"><div class="prev-box-title">DNI / HC</div><div class="prev-text" id="prev-patientDni">-</div></div>
                     </div>
-                    <div style="margin-top: 8px;">
-                        <div class="prev-box-title">OBRA SOCIAL</div>
-                        <div class="prev-text" id="prev-obraSocial">-</div>
-                    </div>
+                    <div style="margin-top: 8px;"><div class="prev-box-title">OBRA SOCIAL</div><div class="prev-text" id="prev-obraSocial">-</div></div>
                 </div>
-
                 <div class="prev-title" id="prev-bodyLabel">INDICACIÓN</div>
-                <div class="prev-box body-box">
-                    <div class="prev-text" id="prev-prescription">Detalle de la prescripción...</div>
-                </div>
-
+                <div class="prev-box body-box"><div class="prev-text" id="prev-prescription">Detalle...</div></div>
                 <div class="prev-title">DIAGNÓSTICO</div>
                 <div class="prev-text" id="prev-diagnosis">-</div>
-
                 <div class="prev-footer">
                     <div class="prev-signature-area">
-                        <div>
-                            <span class="prev-title">Fecha:</span> <span class="prev-text" id="prev-date"></span>
-                        </div>
+                        <div><span class="prev-title">Fecha:</span> <span class="prev-text" id="prev-date"></span></div>
                         <div class="prev-sig-box">
                             <img id="prev-sig-img" class="prev-sig-img" src="" alt="" style="display: none;">
                             <div class="prev-sig-line">
-                                <div id="prev-docNameLine">Nombre del Médico</div>
+                                <div id="prev-docNameLine">Nombre Médico</div>
                                 <div style="font-size: 0.8em; color: var(--text-muted); font-weight: normal;" id="prev-docLicLine">Matrícula: -</div>
                             </div>
                         </div>
@@ -290,29 +209,104 @@
         </div>
     </div>
 
-    <!-- SCRIPT DE LÓGICA -->
+    <!-- TODOS LOS SCRIPTS AL FINAL DEL BODY -->
     <script>
-        // ============================
-        // 1. LÓGICA DEL WIZARD
-        // ============================
+        // 1. CONFIGURACIÓN FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyC6bdftjaS8fwyjRGy6kuRR61anOX9cUwY",
+            authDomain: "firmador-311b4.firebaseapp.com",
+            projectId: "firmador-311b4",
+            storageBucket: "firmador-311b4.firebasestorage.app",
+            messagingSenderId: "850456321329",
+            appId: "1:850456321329:web:805bdf455fe34f09c1e410"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // 2. LÓGICA DE LOGIN Y SEGURIDAD
+        let isRegistering = false;
+        const authSection = document.getElementById('auth-section');
+        const pendingSection = document.getElementById('pending-section');
+        const appLayout = document.getElementById('app-layout');
+        const registerFields = document.getElementById('registerFields');
+        const toggleAuthMode = document.getElementById('toggleAuthMode');
+        const authSubmitBtn = document.getElementById('authSubmitBtn');
+
+        toggleAuthMode.addEventListener('click', (e) => {
+            e.preventDefault();
+            isRegistering = !isRegistering;
+            registerFields.style.display = isRegistering ? 'block' : 'none';
+            authSubmitBtn.textContent = isRegistering ? 'Solicitar Acceso' : 'Ingresar';
+            toggleAuthMode.textContent = isRegistering ? '¿Ya tienes cuenta? Ingresar' : '¿No tienes cuenta? Solicitar acceso';
+            document.getElementById('authName').required = isRegistering;
+            document.getElementById('authSpecialty').required = isRegistering;
+            document.getElementById('authLicense').required = isRegistering;
+        });
+
+        document.getElementById('authForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('authEmail').value;
+            const password = document.getElementById('authPassword').value;
+            try {
+                if (isRegistering) {
+                    const cred = await auth.createUserWithEmailAndPassword(email, password);
+                    await db.collection("medicos").doc(cred.user.uid).set({
+                        email: email,
+                        nombre: document.getElementById('authName').value,
+                        especialidad: document.getElementById('authSpecialty').value,
+                        matricula: document.getElementById('authLicense').value,
+                        aprobado: false 
+                    });
+                } else {
+                    await auth.signInWithEmailAndPassword(email, password);
+                }
+            } catch (error) {
+                alert("Error: " + error.message);
+            }
+        });
+
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                authSection.style.display = 'none';
+                const docRef = await db.collection("medicos").doc(user.uid).get();
+                const data = docRef.data();
+
+                if (data && data.aprobado === true) {
+                    pendingSection.style.display = 'none';
+                    appLayout.style.display = 'flex';
+                    
+                    document.getElementById('doctorName').value = data.nombre;
+                    document.getElementById('doctorSpecialty').value = data.especialidad;
+                    document.getElementById('doctorLicense').value = data.matricula;
+                    document.getElementById('doctorName').readOnly = true;
+                    document.getElementById('doctorLicense').readOnly = true;
+                    updatePreview();
+                } else {
+                    pendingSection.style.display = 'block';
+                    appLayout.style.display = 'none';
+                }
+            } else {
+                authSection.style.display = 'block';
+                pendingSection.style.display = 'none';
+                appLayout.style.display = 'none';
+            }
+        });
+
+        // 3. LÓGICA DEL WIZARD
         let currentStep = 1;
         const totalSteps = 3;
-        
         const steps = document.querySelectorAll('.step');
         const btnPrev = document.getElementById('btn-prev');
         const btnNext = document.getElementById('btn-next');
         const btnSubmit = document.getElementById('btn-submit');
+        const btnFirmarGob = document.getElementById('btn-firmar-gob');
         const stepIndicator = document.getElementById('step-indicator');
-
-        // Títulos de los pasos
         const stepTitles = ["Datos del Paciente", "Prescripción y Diagnóstico", "Profesional y Firma"];
 
         function updateWizardUI() {
-            // Ocultar todos los pasos y mostrar el actual
             steps.forEach(step => step.classList.remove('active'));
             document.querySelector(`.step-${currentStep}`).classList.add('active');
-            
-            // Actualizar textos y botones
             stepIndicator.textContent = `Paso ${currentStep} de ${totalSteps}: ${stepTitles[currentStep - 1]}`;
             
             btnPrev.style.display = currentStep === 1 ? 'none' : 'block';
@@ -320,124 +314,84 @@
             if (currentStep === totalSteps) {
                 btnNext.style.display = 'none';
                 btnSubmit.style.display = 'block';
-                // El canvas necesita redimensionarse cuando su contenedor se hace visible
+                btnFirmarGob.style.display = 'block';
                 resizeCanvas();
             } else {
                 btnNext.style.display = 'block';
                 btnSubmit.style.display = 'none';
+                btnFirmarGob.style.display = 'none';
             }
         }
 
-        // Validación simple de campos obligatorios del paso actual
         function validateStep() {
-            const currentStepEl = document.querySelector(`.step-${currentStep}`);
-            const inputs = currentStepEl.querySelectorAll('input[required], select[required], textarea[required]');
+            const inputs = document.querySelector(`.step-${currentStep}`).querySelectorAll('input[required], select[required], textarea[required]');
             let isValid = true;
             inputs.forEach(input => {
-                if (!input.value.trim()) {
-                    input.style.borderColor = 'red';
-                    isValid = false;
-                } else {
-                    input.style.borderColor = 'var(--border)';
-                }
+                if (!input.value.trim()) { input.style.borderColor = 'red'; isValid = false; } 
+                else { input.style.borderColor = 'var(--border)'; }
             });
             return isValid;
         }
 
-        btnNext.addEventListener('click', () => {
-            if (validateStep()) {
-                currentStep++;
-                updateWizardUI();
-            }
-        });
+        btnNext.addEventListener('click', () => { if (validateStep()) { currentStep++; updateWizardUI(); } });
+        btnPrev.addEventListener('click', () => { currentStep--; updateWizardUI(); });
 
-        btnPrev.addEventListener('click', () => {
-            currentStep--;
-            updateWizardUI();
-        });
-
-        // ============================
-        // 2. VISTA PREVIA EN TIEMPO REAL
-        // ============================
-        // Configurar fecha actual
+        // 4. VISTA PREVIA
         document.getElementById('prev-date').textContent = new Date().toLocaleDateString('es-AR');
-
-        // Mapeo de inputs a elementos de la vista previa
         const updatePreview = () => {
             const docType = document.getElementById('docType').value;
             document.getElementById('prev-docType').textContent = docType;
             document.getElementById('prev-docLabel').textContent = docType === 'Rp' ? 'RECETA MÉDICA' : 'SOLICITUD ESTUDIOS';
             document.getElementById('prev-bodyLabel').textContent = docType === 'Rp' ? 'INDICACIÓN' : 'PRÁCTICAS / ESTUDIOS SOLICITADOS';
-
             document.getElementById('prev-patientName').textContent = document.getElementById('patientName').value || 'Nombre del paciente';
             document.getElementById('prev-patientDni').textContent = document.getElementById('patientDni').value || '-';
             document.getElementById('prev-obraSocial').textContent = document.getElementById('obraSocial').value || '-';
             document.getElementById('prev-prescription').textContent = document.getElementById('prescription').value || 'Detalle de la prescripción...';
             document.getElementById('prev-diagnosis').textContent = document.getElementById('diagnosis').value || '-';
-            
             const docName = document.getElementById('doctorName').value || 'Dr. Nombre Apellido';
             const docLic = document.getElementById('doctorLicense').value || '-';
-            
             document.getElementById('prev-doctorName').textContent = docName;
             document.getElementById('prev-docNameLine').textContent = docName;
             document.getElementById('prev-doctorSpecialty').textContent = document.getElementById('doctorSpecialty').value || 'Especialidad';
             document.getElementById('prev-doctorLicense').textContent = docLic;
             document.getElementById('prev-docLicLine').textContent = `Matrícula: ${docLic}`;
+            
+            const timeStr = new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+            document.querySelector('.prev-watermark').textContent = `Documento generado digitalmente el ${new Date().toLocaleDateString('es-AR')} a las ${timeStr} hs.`;
         };
+        document.querySelectorAll('#medicalForm input, #medicalForm select, #medicalForm textarea').forEach(input => { input.addEventListener('input', updatePreview); });
 
-        // Escuchar cambios en todos los inputs
-        document.querySelectorAll('#medicalForm input, #medicalForm select, #medicalForm textarea').forEach(input => {
-            input.addEventListener('input', updatePreview);
-        });
-
-        // ============================
-        // 3. FIRMA DIGITAL (Signature Pad)
-        // ============================
+        // 5. FIRMA DIGITAL
         const canvas = document.getElementById('signature-pad');
         const signaturePad = new SignaturePad(canvas, { minWidth: 1, maxWidth: 2.5, penColor: "black" });
-
         function resizeCanvas() {
-            // Solo redimensionar si el canvas es visible para evitar errores de tamaño 0
             if (canvas.offsetWidth === 0) return; 
             const ratio = Math.max(window.devicePixelRatio || 1, 1);
             canvas.width = canvas.offsetWidth * ratio;
             canvas.height = canvas.offsetHeight * ratio;
             canvas.getContext("2d").scale(ratio, ratio);
             signaturePad.clear();
-            document.getElementById('prev-sig-img').src = "";
+            document.getElementById('prev-sig-img').style.display = 'none';
         }
         window.addEventListener("resize", resizeCanvas);
-
-		document.getElementById('clearSignature').addEventListener('click', () => {
+        document.getElementById('clearSignature').addEventListener('click', () => {
             signaturePad.clear();
-            const prevImg = document.getElementById('prev-sig-img');
-            prevImg.src = "";
-            prevImg.style.display = 'none'; // Vuelve a ocultar la imagen al limpiar
+            document.getElementById('prev-sig-img').style.display = 'none';
         });
-
-        // Actualizar la firma en la vista previa cuando el usuario termina de trazar
         signaturePad.addEventListener("endStroke", () => {
             const prevImg = document.getElementById('prev-sig-img');
             prevImg.src = signaturePad.toDataURL();
-            prevImg.style.display = 'block'; // Muestra la imagen una vez que firmas
+            prevImg.style.display = 'block';
         });
 
-        // ============================
-        // 4. GENERACIÓN DEL PDF EXACTO (jsPDF)
-        // ============================
-        // Mantiene tu misma lógica de diseño original para el PDF final
+        // 6. GENERACIÓN DEL PDF
         document.getElementById('medicalForm').addEventListener('submit', function(e) {
             e.preventDefault();
-
             if (!validateStep()) return;
-            if (signaturePad.isEmpty()) {
-                alert("Por favor, agregue su firma antes de generar el documento.");
-                return;
-            }
+            if (signaturePad.isEmpty()) { alert("Por favor, agregue su firma."); return; }
 
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-
             const docType = document.getElementById('docType').value;
             const docLabel = docType === 'Rp' ? 'RECETA MÉDICA' : 'SOLICITUD DE PRÁCTICAS';
             const patientName = document.getElementById('patientName').value;
@@ -450,119 +404,53 @@
             const doctorLicense = document.getElementById('doctorLicense').value;
 
             const currentDate = new Date().toLocaleDateString('es-AR');
-
-            // Paleta de colores para el PDF
             const COLOR_PRIMARY = [30, 74, 110];
             const COLOR_MUTED = [110, 110, 110];
             const PAGE_W = 170;
             const MARGIN_L = 20;
 
-            // Encabezado
             let y = 24;
-            doc.setTextColor(20, 52, 78);
-            doc.setFont("Helvetica", "bold");
-            doc.setFontSize(16);
-            doc.text(doctorName, MARGIN_L, y);
-
-            doc.setFont("Helvetica", "normal");
-            doc.setFontSize(10.5);
-            doc.setTextColor(...COLOR_MUTED);
-            y += 6;
-            doc.text(doctorSpecialty, MARGIN_L, y);
-            y += 5;
-            doc.text(`Matrícula: ${doctorLicense}`, MARGIN_L, y);
-
-            // Badge
-            doc.setFillColor(...COLOR_PRIMARY);
-            doc.roundedRect(142, 16, 48, 16, 2, 2, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFont("Helvetica", "bold");
-            doc.setFontSize(13);
-            doc.text(docType, 166, 23, { align: 'center' });
-            doc.setFontSize(6.5);
-            doc.setFont("Helvetica", "normal");
-            doc.text(docLabel, 166, 28.5, { align: 'center' });
-
-            // Línea divisoria
-            y += 6;
-            doc.setDrawColor(...COLOR_PRIMARY);
-            doc.setLineWidth(0.8);
-            doc.line(MARGIN_L, y, 190, y);
-
-            // Caja Paciente
-            y += 8;
-            doc.setFillColor(244, 247, 249);
-            doc.roundedRect(MARGIN_L, y, PAGE_W, obraSocial ? 22 : 16, 2, 2, 'F');
-
-            doc.setFontSize(7.5); doc.setFont("Helvetica", "bold"); doc.setTextColor(...COLOR_MUTED);
-            doc.text('PACIENTE', MARGIN_L + 5, y + 6);
-            doc.setFontSize(11); doc.setTextColor(40, 40, 40);
-            doc.text(patientName, MARGIN_L + 5, y + 12);
-
-            doc.setFontSize(7.5); doc.setFont("Helvetica", "bold"); doc.setTextColor(...COLOR_MUTED);
-            doc.text('DNI / HC', MARGIN_L + 110, y + 6);
-            doc.setFontSize(11); doc.setTextColor(40, 40, 40);
-            doc.text(patientDni, MARGIN_L + 110, y + 12);
-
-            if (obraSocial) {
-                doc.setFontSize(7.5); doc.setFont("Helvetica", "bold"); doc.setTextColor(...COLOR_MUTED);
-                doc.text('OBRA SOCIAL', MARGIN_L + 5, y + 18);
-                doc.setFontSize(10); doc.setFont("Helvetica", "normal"); doc.setTextColor(40, 40, 40);
-                doc.text(obraSocial, MARGIN_L + 28, y + 18);
-            }
-
+            doc.setTextColor(20, 52, 78); doc.setFont("Helvetica", "bold"); doc.setFontSize(16); doc.text(doctorName, MARGIN_L, y);
+            doc.setFont("Helvetica", "normal"); doc.setFontSize(10.5); doc.setTextColor(...COLOR_MUTED); y += 6; doc.text(doctorSpecialty, MARGIN_L, y); y += 5; doc.text(`Matrícula: ${doctorLicense}`, MARGIN_L, y);
+            doc.setFillColor(...COLOR_PRIMARY); doc.roundedRect(142, 16, 48, 16, 2, 2, 'F'); doc.setTextColor(255, 255, 255); doc.setFont("Helvetica", "bold"); doc.setFontSize(13); doc.text(docType, 166, 23, { align: 'center' }); doc.setFontSize(6.5); doc.setFont("Helvetica", "normal"); doc.text(docLabel, 166, 28.5, { align: 'center' });
+            y += 6; doc.setDrawColor(...COLOR_PRIMARY); doc.setLineWidth(0.8); doc.line(MARGIN_L, y, 190, y);
+            y += 8; doc.setFillColor(244, 247, 249); doc.roundedRect(MARGIN_L, y, PAGE_W, obraSocial ? 22 : 16, 2, 2, 'F');
+            doc.setFontSize(7.5); doc.setFont("Helvetica", "bold"); doc.setTextColor(...COLOR_MUTED); doc.text('PACIENTE', MARGIN_L + 5, y + 6); doc.setFontSize(11); doc.setTextColor(40, 40, 40); doc.text(patientName, MARGIN_L + 5, y + 12);
+            doc.setFontSize(7.5); doc.setFont("Helvetica", "bold"); doc.setTextColor(...COLOR_MUTED); doc.text('DNI / HC', MARGIN_L + 110, y + 6); doc.setFontSize(11); doc.setTextColor(40, 40, 40); doc.text(patientDni, MARGIN_L + 110, y + 12);
+            if (obraSocial) { doc.setFontSize(7.5); doc.setFont("Helvetica", "bold"); doc.setTextColor(...COLOR_MUTED); doc.text('OBRA SOCIAL', MARGIN_L + 5, y + 18); doc.setFontSize(10); doc.setFont("Helvetica", "normal"); doc.setTextColor(40, 40, 40); doc.text(obraSocial, MARGIN_L + 28, y + 18); }
             y += (obraSocial ? 22 : 16) + 10;
-
-            // Cuerpo
-            doc.setFontSize(8.5); doc.setFont("Helvetica", "bold"); doc.setTextColor(20, 52, 78);
-            doc.text(docType === 'Rp' ? 'INDICACIÓN' : 'PRÁCTICAS / ESTUDIOS SOLICITADOS', MARGIN_L, y);
-            y += 4;
-            
-            doc.setFontSize(11.5); doc.setFont("Helvetica", "normal"); doc.setTextColor(40, 40, 40);
-            const splitText = doc.splitTextToSize(prescription, PAGE_W - 10);
-            const bodyBoxH = Math.max(30, splitText.length * 6 + 10);
-            doc.setFillColor(248, 248, 245); doc.setDrawColor(210, 216, 220); doc.setLineWidth(0.3);
-            doc.roundedRect(MARGIN_L, y, PAGE_W, bodyBoxH, 2, 2, 'FD');
-            doc.text(splitText, MARGIN_L + 5, y + 8);
-
+            doc.setFontSize(8.5); doc.setFont("Helvetica", "bold"); doc.setTextColor(20, 52, 78); doc.text(docType === 'Rp' ? 'INDICACIÓN' : 'PRÁCTICAS / ESTUDIOS SOLICITADOS', MARGIN_L, y); y += 4;
+            doc.setFontSize(11.5); doc.setFont("Helvetica", "normal"); doc.setTextColor(40, 40, 40); const splitText = doc.splitTextToSize(prescription, PAGE_W - 10); const bodyBoxH = Math.max(30, splitText.length * 6 + 10); doc.setFillColor(248, 248, 245); doc.setDrawColor(210, 216, 220); doc.setLineWidth(0.3); doc.roundedRect(MARGIN_L, y, PAGE_W, bodyBoxH, 2, 2, 'FD'); doc.text(splitText, MARGIN_L + 5, y + 8);
             y += bodyBoxH + 10;
+            doc.setFontSize(8.5); doc.setFont("Helvetica", "bold"); doc.setTextColor(20, 52, 78); doc.text('DIAGNÓSTICO', MARGIN_L, y); y += 5; doc.setFontSize(10.5); doc.setFont("Helvetica", "normal"); doc.setTextColor(40, 40, 40); doc.text(doc.splitTextToSize(diagnosis, PAGE_W), MARGIN_L, y);
 
-            // Diagnóstico
-            doc.setFontSize(8.5); doc.setFont("Helvetica", "bold"); doc.setTextColor(20, 52, 78);
-            doc.text('DIAGNÓSTICO', MARGIN_L, y);
-            y += 5;
-            doc.setFontSize(10.5); doc.setFont("Helvetica", "normal"); doc.setTextColor(40, 40, 40);
-            doc.text(doc.splitTextToSize(diagnosis, PAGE_W), MARGIN_L, y);
-
-            // Firma y Footer (anclados abajo)
-            const sigTopY = 200;
-            doc.setFontSize(9.5); doc.setFont("Helvetica", "bold");
-            doc.text('Fecha:', MARGIN_L, sigTopY);
-            doc.setFont("Helvetica", "normal");
-            doc.text(currentDate, MARGIN_L + 14, sigTopY);
-
+            // FIRMA ALINEADA A LA DERECHA Y FECHA A LA IZQUIERDA
+            const sigTopY = 225; 
+            doc.setFontSize(10); doc.setFont("Helvetica", "bold"); doc.setTextColor(40, 40, 40); doc.text('Fecha:', MARGIN_L, sigTopY); doc.setFont("Helvetica", "normal"); doc.text(currentDate, MARGIN_L + 14, sigTopY);
+            
             const signatureImage = signaturePad.toDataURL('image/png');
             const ratio = canvas.width / canvas.height;
-            let firmaAncho = PAGE_W - 20;
+            const maxFirmaAncho = 65; 
+            let firmaAncho = maxFirmaAncho;
             let firmaAlto = firmaAncho / ratio;
-            if (firmaAlto > 45) { firmaAlto = 45; firmaAncho = firmaAlto * ratio; }
+            if (firmaAlto > 30) { firmaAlto = 30; firmaAncho = firmaAlto * ratio; }
+            
+            const sigAreaStartX = 190 - maxFirmaAncho; 
+            const firmaX = sigAreaStartX + (maxFirmaAncho - firmaAncho) / 2;
+            const firmaY = sigTopY - firmaAlto - 2; 
 
-            const firmaX = MARGIN_L + (PAGE_W - firmaAncho) / 2;
-            doc.addImage(signatureImage, 'PNG', firmaX, sigTopY + 6, firmaAncho, firmaAlto);
+            doc.addImage(signatureImage, 'PNG', firmaX, firmaY, firmaAncho, firmaAlto);
+            doc.setDrawColor(...COLOR_MUTED); doc.setLineWidth(0.4); doc.line(sigAreaStartX, sigTopY, 190, sigTopY);
+            doc.setFontSize(10); doc.setFont("Helvetica", "bold"); doc.setTextColor(40, 40, 40); doc.text(doctorName, sigAreaStartX + (maxFirmaAncho / 2), sigTopY + 5.5, { align: 'center' });
+            doc.setFontSize(8.5); doc.setFont("Helvetica", "normal"); doc.setTextColor(...COLOR_MUTED); doc.text(`Matrícula: ${doctorLicense}`, sigAreaStartX + (maxFirmaAncho / 2), sigTopY + 10, { align: 'center' });
 
-            const lineY = sigTopY + 6 + firmaAlto + 3;
-            doc.setDrawColor(...COLOR_MUTED);
-            const lineW = Math.min(firmaAncho + 20, PAGE_W);
-            doc.line(MARGIN_L + (PAGE_W - lineW) / 2, lineY, MARGIN_L + (PAGE_W - lineW) / 2 + lineW, lineY);
-
-            doc.setFontSize(10); doc.setFont("Helvetica", "bold"); doc.setTextColor(40, 40, 40);
-            doc.text(doctorName, MARGIN_L + PAGE_W / 2, lineY + 5.5, { align: 'center' });
-            doc.setFontSize(8.5); doc.setFont("Helvetica", "normal"); doc.setTextColor(...COLOR_MUTED);
-            doc.text(`Matrícula: ${doctorLicense}`, MARGIN_L + PAGE_W / 2, lineY + 10, { align: 'center' });
+            // MARCA DE TIEMPO
+            doc.setDrawColor(210, 216, 220); doc.setLineWidth(0.3); doc.line(MARGIN_L, 278, 190, 278); 
+            const timeString = new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+            doc.setFontSize(8); doc.setFont("Helvetica", "italic"); doc.setTextColor(150, 150, 150); doc.text(`Documento generado digitalmente el ${currentDate} a las ${timeString} hs.`, MARGIN_L, 283);
 
             doc.save(`${docType}_${patientName.replace(/\s+/g, '_')}.pdf`);
         });
-
     </script>
 </body>
 </html>
