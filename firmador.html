@@ -106,6 +106,18 @@
                 <div class="form-group"><label>Matrícula (MN/MP):</label><input type="text" id="authLicense" placeholder="Ej. 123456"></div>
             </div>
             <button type="submit" class="btn btn-next" style="width: 100%; margin-top: 10px;" id="authSubmitBtn">Ingresar</button>
+			<!-- NUEVO BOTÓN DE GOOGLE -->
+            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+            <button type="button" id="btn-google" class="btn" style="width: 100%; background: #ffffff; color: #555; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.73 17.74 9.5 24 9.5z"></path>
+                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+                    <path fill="none" d="M0 0h48v48H0z"></path>
+                </svg>
+                Continuar con Google
+            </button>
         </form>
         <p style="text-align: center; margin-top: 15px; font-size: 0.9em;">
             <a href="#" id="toggleAuthMode" style="color: #3498db; text-decoration: none;">¿No tienes cuenta? Solicitar acceso</a>
@@ -117,6 +129,28 @@
         <h2 style="color: #e67e22; margin-bottom: 15px;">Cuenta en Revisión</h2>
         <p style="color: #555; margin-bottom: 25px;">Por cuestiones de seguridad, un administrador debe verificar tus credenciales médicas antes de habilitar la emisión de recetas digitales.</p>
         <button class="btn btn-prev" onclick="firebase.auth().signOut()">Cerrar Sesión</button>
+    </div>
+	
+	<!-- PANTALLA PARA COMPLETAR DATOS DE GOOGLE -->
+    <div id="google-completion-section" style="display: none; max-width: 400px; margin: 60px auto; padding: 30px; background: #fff; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.05);">
+        <h2 style="color: #1e4a6e; margin-bottom: 20px; text-align: center;">Completar Registro</h2>
+        <p style="font-size: 0.9em; color: #555; margin-bottom: 20px;">Por favor, ingresa tus datos profesionales para finalizar la vinculación con tu cuenta de Google.</p>
+        
+        <form id="googleCompletionForm">
+            <div class="form-group">
+                <label>Nombre y Apellido:</label>
+                <input type="text" id="googleName" required>
+            </div>
+            <div class="form-group">
+                <label>Especialidad:</label>
+                <input type="text" id="googleSpecialty" required placeholder="Ej. Médico Clínico">
+            </div>
+            <div class="form-group">
+                <label>Matrícula (MN/MP):</label>
+                <input type="text" id="googleLicense" required placeholder="Ej. 123456">
+            </div>
+            <button type="submit" class="btn btn-next" style="width: 100%; margin-top: 10px;">Enviar Solicitud</button>
+        </form>
     </div>
 
     <!-- APLICACIÓN PRINCIPAL -->
@@ -222,12 +256,14 @@
         };
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
+		auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
         const db = firebase.firestore();
 
         // 2. LÓGICA DE LOGIN Y SEGURIDAD
         let isRegistering = false;
         const authSection = document.getElementById('auth-section');
         const pendingSection = document.getElementById('pending-section');
+		const googleCompletionSection = document.getElementById('google-completion-section');
         const appLayout = document.getElementById('app-layout');
         const registerFields = document.getElementById('registerFields');
         const toggleAuthMode = document.getElementById('toggleAuthMode');
@@ -265,31 +301,80 @@
                 alert("Error: " + error.message);
             }
         });
+		
+		// Iniciar sesión con Google
+        document.getElementById('btn-google').addEventListener('click', async () => {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            try {
+                // Al hacer clic, abre la ventana. El onAuthStateChanged se encarga del resto.
+                await auth.signInWithPopup(provider);
+            } catch (error) {
+                alert("Error al iniciar con Google: " + error.message);
+            }
+        });
 
-        auth.onAuthStateChanged(async (user) => {
+        // Guardar los datos del formulario de Google
+        document.getElementById('googleCompletionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const user = auth.currentUser;
+            
+            if (user) {
+                try {
+                    await db.collection("medicos").doc(user.uid).set({
+                        email: user.email,
+                        nombre: document.getElementById('googleName').value,
+                        especialidad: document.getElementById('googleSpecialty').value,
+                        matricula: document.getElementById('googleLicense').value,
+                        aprobado: false // Lo dejamos pendiente de tu aprobación
+                    });
+                    
+                    // Ocultamos el formulario y mostramos la pantalla de "En Revisión"
+                    googleCompletionSection.style.display = 'none';
+                    pendingSection.style.display = 'block';
+                } catch (error) {
+                    alert("Error al guardar los datos: " + error.message);
+                }
+            }
+        });
+
+			auth.onAuthStateChanged(async (user) => {
             if (user) {
                 authSection.style.display = 'none';
                 const docRef = await db.collection("medicos").doc(user.uid).get();
-                const data = docRef.data();
 
-                if (data && data.aprobado === true) {
+                if (!docRef.exists) {
+                    // ES UN USUARIO NUEVO DE GOOGLE: Pedir datos faltantes
                     pendingSection.style.display = 'none';
-                    appLayout.style.display = 'flex';
-                    
-                    document.getElementById('doctorName').value = data.nombre;
-                    document.getElementById('doctorSpecialty').value = data.especialidad;
-                    document.getElementById('doctorLicense').value = data.matricula;
-                    document.getElementById('doctorName').readOnly = true;
-                    document.getElementById('doctorLicense').readOnly = true;
-                    updatePreview();
-                } else {
-                    pendingSection.style.display = 'block';
                     appLayout.style.display = 'none';
+                    googleCompletionSection.style.display = 'block';
+                    
+                    // Autocompletamos el nombre con el que tiene configurado en su Gmail
+                    document.getElementById('googleName').value = user.displayName || '';
+                } else {
+                    // ES UN USUARIO QUE YA TIENE PERFIL
+                    googleCompletionSection.style.display = 'none';
+                    const data = docRef.data();
+
+                    if (data && data.aprobado === true) {
+                        pendingSection.style.display = 'none';
+                        appLayout.style.display = 'flex';
+                        
+                        document.getElementById('doctorName').value = data.nombre;
+                        document.getElementById('doctorSpecialty').value = data.especialidad;
+                        document.getElementById('doctorLicense').value = data.matricula;
+                        document.getElementById('doctorName').readOnly = true;
+                        document.getElementById('doctorLicense').readOnly = true;
+                        updatePreview();
+                    } else {
+                        pendingSection.style.display = 'block';
+                        appLayout.style.display = 'none';
+                    }
                 }
             } else {
                 authSection.style.display = 'block';
                 pendingSection.style.display = 'none';
                 appLayout.style.display = 'none';
+                googleCompletionSection.style.display = 'none';
             }
         });
 
