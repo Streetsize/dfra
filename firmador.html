@@ -108,6 +108,27 @@
         .back-link:hover {
             text-decoration: underline;
         }
+        .legal-notice {
+            background: #fff8e6;
+            border: 1px solid #f0d68a;
+            border-left: 4px solid #d4a017;
+            border-radius: 4px;
+            padding: 14px 18px;
+            margin-bottom: 24px;
+            font-size: 13.5px;
+            line-height: 1.5;
+            color: #6b5510;
+        }
+        .legal-notice strong {
+            color: #4a3b0c;
+        }
+        .legal-notice ul {
+            margin: 8px 0 4px 18px;
+            padding: 0;
+        }
+        .legal-notice li {
+            margin-bottom: 4px;
+        }
         @media (max-width: 600px) {
             .form-row {
                 flex-direction: column;
@@ -119,8 +140,19 @@
 <body>
 
     <div class="firmador-container">
-        <a href="index.html" class="back-link">&larr; Volver al Inicio</a>
+        <a href="index" class="back-link">&larr; Volver al Inicio</a>
         <h2>Generador Digital de Recetas y Pedidos</h2>
+
+        <div class="legal-notice">
+            <strong>⚠ Sobre la validez legal de este documento:</strong>
+            <p style="margin: 6px 0;">La firma que dibujás acá se guarda como una <strong>imagen</strong> dentro del PDF, no como una firma digital ni electrónica en el sentido legal (Ley 25.506 y Ley 27.553). Concretamente:</p>
+            <ul>
+                <li><strong>No</strong> equivale a una firma digital certificada (requiere un certificador licenciado).</li>
+                <li><strong>No</strong> equivale a una receta electrónica/digital habilitada (requiere una plataforma reconocida por el Ministerio de Salud).</li>
+                <li><strong>Sí</strong> es válida como receta en papel con firma manuscrita si <u>imprimís el PDF y lo firmás a mano con lapicera</u> — esa vía sigue teniendo plena validez.</li>
+            </ul>
+            <p style="margin: 6px 0 0;">Para medicamentos controlados (psicofármacos, estupefacientes) puede haber requisitos adicionales de recetario oficial. Ante la duda, consultá con tu colegio médico.</p>
+        </div>
 
         <form id="medicalForm">
             <!-- Tipo de Documento -->
