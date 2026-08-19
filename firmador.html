@@ -279,6 +279,18 @@
             document.getElementById('authSpecialty').required = isRegistering;
             document.getElementById('authLicense').required = isRegistering;
         });
+		
+		// ATRApar el regreso de Google
+        auth.getRedirectResult().then(async (result) => {
+            if (result.user) {
+                // Si llegó aquí, el usuario volvió con éxito.
+                // No hace falta hacer nada más, porque el "Portero" (onAuthStateChanged)
+                // detectará a este usuario y hará el cambio de pantalla automáticamente.
+                console.log("Regreso de Google exitoso");
+            }
+        }).catch((error) => {
+            alert("Error en la autenticación de Google: " + error.message);
+        });
 
         document.getElementById('authForm').addEventListener('submit', async (e) => {
             e.preventDefault();
