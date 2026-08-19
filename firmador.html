@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Recetas y Pedidos - Romero Anglat</title>
+	<link rel="icon" href="img/favicon.png"
+    <!-- Estilos generales -->
+    <link rel="stylesheet" href="styles/style.css">
+
+    <!-- Librería jsPDF para la exportación a PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <!-- Librería Signature Pad para una firma realista -->
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+
+    <style>
+        .firmador-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 30px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .firmador-container h2 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+            border-bottom: 2px solid #eaeaea;
+            padding-bottom: 10px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        .form-row {
+            display: flex;
+            gap: 20px;
+        }
+        .form-row .form-group {
+            flex: 1;
+        }
+        /* Lienzo para la firma digital */
+        .signature-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 420px;
+            height: 260px;
+            margin: 0 auto;
+            border: 2px dashed #bdc3c7;
+            border-radius: 4px;
+            background: #fdfdfd;
+            touch-action: none;
+        }
+        #signature-pad {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+        }
+        .btn-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+        }
+        .btn {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        .btn-clear {
+            background-color: #e74c3c;
+        }
+        .btn-clear:hover {
+            background-color: #c0392b;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #3498db;
+            text-decoration: none;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        @media (max-width: 600px) {
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="firmador-container">
+        <a href="index.html" class="back-link">&larr; Volver al Inicio</a>
+        <h2>Generador Digital de Recetas y Pedidos</h2>
+
+        <form id="medicalForm">
+            <!-- Tipo de Documento -->
+            <div class="form-group">
+                <label for="docType">Tipo de Documento:</label>
+                <select id="docType" required>
+                    <option value="Rp">Rp (Receta Médica)</option>
+                    <option value="Ord">Ord (Orden de Prácticas / Estudios)</option>
+                </select>
+            </div>
+
+            <!-- Datos del Paciente -->
+            <div class="form-group">
+                <label for="patientName">Nombre y Apellido del Paciente:</label>
+                <input type="text" id="patientName" required placeholder="Ej. Juan Pérez">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="patientDni">DNI / Historia Clínica:</label>
+                    <input type="text" id="patientDni" required placeholder="Ej. 35123456">
+                </div>
+                <div class="form-group">
+                    <label for="obraSocial">Obra Social (Opcional):</label>
+                    <input type="text" id="obraSocial" placeholder="Ej. OSDE 210 / IOMA">
+                </div>
+            </div>
+
+            <!-- Prescripción / Indicación -->
+            <div class="form-group">
+                <label for="prescription">Medicamentos / Prácticas solicitadas:</label>
+                <textarea id="prescription" rows="6" required placeholder="Detalle los medicamentos con dosis o los estudios solicitados..."></textarea>
+            </div>
+
+            <!-- Diagnóstico -->
+            <div class="form-group">
+                <label for="diagnosis">Diagnóstico:</label>
+                <input type="text" id="diagnosis" required placeholder="Ej. Hipertensión arterial / Control">
+            </div>
+
+            <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eaeaea;">
+
+            <!-- Datos del Profesional -->
+            <h3>Datos del Profesional</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="doctorName">Nombre del Médico:</label>
+                    <input type="text" id="doctorName" required placeholder="Dr. Nombre Apellido">
+                </div>
+                <div class="form-group">
+                    <label for="doctorSpecialty">Profesión / Especialidad:</label>
+                    <input type="text" id="doctorSpecialty" required placeholder="Ej. Médico Clínico">
+                </div>
+                <div class="form-group">
+                    <label for="doctorLicense">Matrícula Profesional:</label>
+                    <input type="text" id="doctorLicense" required placeholder="MN: 123456 / MP: 654321">
+                </div>
+            </div>
+
+            <!-- Área de Firma Digital -->
+            <div class="form-group">
+                <label>Firma Digital / Hológrafa:</label>
+                <div class="signature-wrapper">
+                    <canvas id="signature-pad"></canvas>
+                </div>
+                <button type="button" class="btn btn-clear" id="clearSignature" style="margin-top: 10px; padding: 6px 12px; font-size: 13px;">Limpiar Firma</button>
+            </div>
+
+            <!-- Botón de Generación -->
+            <div class="btn-container">
+                <button type="submit" class="btn">Generar y Descargar PDF</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Script de Lógica y Firma -->
+    <script>
+        // ============================
+        // INICIALIZACIÓN DE LA FIRMA
+        // ============================
+        const canvas = document.getElementById('signature-pad');
+
+        const signaturePad = new SignaturePad(canvas, {
+            minWidth: 1,
+            maxWidth: 2.5,
+            penColor: "black",
+            velocityFilterWeight: 0.7
+        });
+
+        function resizeCanvas() {
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = canvas.offsetWidth * ratio;
+            canvas.height = canvas.offsetHeight * ratio;
+            canvas.getContext("2d").scale(ratio, ratio);
+            signaturePad.clear();
+        }
+        window.addEventListener("resize", resizeCanvas);
+        resizeCanvas();
+
+        document.getElementById('clearSignature').addEventListener('click', () => {
+            signaturePad.clear();
+        });
+
+        // ============================
+        // PALETA / CONSTANTES DE DISEÑO DEL PDF
+        // ============================
+        const COLOR_PRIMARY   = [30, 74, 110];    // azul petróleo — encabezado, líneas fuertes
+        const COLOR_PRIMARY_D = [20, 52, 78];      // versión oscura, para texto sobre el badge
+        const COLOR_TEXT      = [40, 40, 40];      // texto general
+        const COLOR_MUTED     = [110, 110, 110];   // texto secundario / footer
+        const COLOR_BOX_BG    = [244, 247, 249];   // fondo caja paciente
+        const COLOR_BOX_BG2   = [248, 248, 245];   // fondo caja prescripción
+        const COLOR_LINE      = [210, 216, 220];   // líneas suaves
+
+        const MARGIN_L = 20;
+        const MARGIN_R = 190;
+        const PAGE_W = MARGIN_R - MARGIN_L; // 170
+
+        // ============================
+        // GENERACIÓN DEL PDF
+        // ============================
+        document.getElementById('medicalForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            if (signaturePad.isEmpty()) {
+                alert("Por favor, agregue su firma antes de generar el documento.");
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            const docType = document.getElementById('docType').value;
+            const docLabel = docType === 'Rp' ? 'RECETA MÉDICA' : 'ORDEN DE PRÁCTICAS / ESTUDIOS';
+            const patientName = document.getElementById('patientName').value;
+            const patientDni = document.getElementById('patientDni').value;
+            const obraSocial = document.getElementById('obraSocial').value;
+            const diagnosis = document.getElementById('diagnosis').value;
+            const prescription = document.getElementById('prescription').value;
+            const doctorName = document.getElementById('doctorName').value;
+            const doctorSpecialty = document.getElementById('doctorSpecialty').value;
+            const doctorLicense = document.getElementById('doctorLicense').value;
+
+            const now = new Date();
+            const currentDate = now.toLocaleDateString('es-AR');
+            const currentTime = now.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+
+            // ---------- Marco general de página ----------
+            doc.setDrawColor(...COLOR_LINE);
+            doc.setLineWidth(0.3);
+            doc.rect(12, 12, 186, 273); // borde sutil de página (A4 ~210x297)
+
+            // ---------- Encabezado: membrete del profesional ----------
+            let y = 24;
+            doc.setTextColor(...COLOR_PRIMARY_D);
+            doc.setFont("Helvetica", "bold");
+            doc.setFontSize(16);
+            doc.text(doctorName, MARGIN_L, y);
+
+            doc.setFont("Helvetica", "normal");
+            doc.setFontSize(10.5);
+            doc.setTextColor(...COLOR_MUTED);
+            y += 6;
+            doc.text(doctorSpecialty, MARGIN_L, y);
+            y += 5;
+            doc.text(`Matrícula: ${doctorLicense}`, MARGIN_L, y);
+
+            // Badge de tipo de documento, arriba a la derecha
+            const badgeW = 48, badgeH = 16, badgeX = MARGIN_R - badgeW, badgeY = 16;
+            doc.setFillColor(...COLOR_PRIMARY);
+            doc.roundedRect(badgeX, badgeY, badgeW, badgeH, 2, 2, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFont("Helvetica", "bold");
+            doc.setFontSize(13);
+            doc.text(docType, badgeX + badgeW / 2, badgeY + 7, { align: 'center' });
+            doc.setFontSize(6.5);
+            doc.setFont("Helvetica", "normal");
+            doc.text(docLabel, badgeX + badgeW / 2, badgeY + 12.5, { align: 'center', maxWidth: badgeW - 4 });
+
+            // Línea divisoria fuerte bajo el encabezado
+            y += 6;
+            doc.setDrawColor(...COLOR_PRIMARY);
+            doc.setLineWidth(0.8);
+            doc.line(MARGIN_L, y, MARGIN_R, y);
+
+            // ---------- Caja de datos del paciente ----------
+            y += 8;
+            const patientBoxH = obraSocial.trim() !== '' ? 22 : 16;
+            doc.setFillColor(...COLOR_BOX_BG);
+            doc.roundedRect(MARGIN_L, y, PAGE_W, patientBoxH, 2, 2, 'F');
+
+            doc.setFontSize(7.5);
+            doc.setFont("Helvetica", "bold");
+            doc.setTextColor(...COLOR_MUTED);
+            doc.text('PACIENTE', MARGIN_L + 5, y + 6);
+            doc.setFontSize(11);
+            doc.setTextColor(...COLOR_TEXT);
+            doc.text(patientName, MARGIN_L + 5, y + 12);
+
+            doc.setFontSize(7.5);
+            doc.setFont("Helvetica", "bold");
+            doc.setTextColor(...COLOR_MUTED);
+            doc.text('DNI / HC', MARGIN_L + 110, y + 6);
+            doc.setFontSize(11);
+            doc.setTextColor(...COLOR_TEXT);
+            doc.text(patientDni, MARGIN_L + 110, y + 12);
+
+            if (obraSocial.trim() !== '') {
+                doc.setFontSize(7.5);
+                doc.setFont("Helvetica", "bold");
+                doc.setTextColor(...COLOR_MUTED);
+                doc.text('OBRA SOCIAL', MARGIN_L + 5, y + 18);
+                doc.setFontSize(10);
+                doc.setFont("Helvetica", "normal");
+                doc.setTextColor(...COLOR_TEXT);
+                doc.text(obraSocial, MARGIN_L + 28, y + 18);
+            }
+
+            y += patientBoxH + 10;
+
+            // ---------- Cuerpo: prescripción / indicaciones ----------
+            doc.setFontSize(8.5);
+            doc.setFont("Helvetica", "bold");
+            doc.setTextColor(...COLOR_PRIMARY_D);
+            const bodyLabel = docType === 'Rp' ? 'INDICACIÓN' : 'PRÁCTICAS / ESTUDIOS ORDENADOS';
+            doc.text(bodyLabel, MARGIN_L, y);
+            y += 4;
+
+            doc.setFontSize(11.5);
+            doc.setFont("Helvetica", "normal");
+            doc.setTextColor(...COLOR_TEXT);
+            const splitText = doc.splitTextToSize(prescription, PAGE_W - 10);
+            const bodyBoxH = Math.max(30, splitText.length * 6 + 10);
+            doc.setFillColor(...COLOR_BOX_BG2);
+            doc.setDrawColor(...COLOR_LINE);
+            doc.setLineWidth(0.3);
+            doc.roundedRect(MARGIN_L, y, PAGE_W, bodyBoxH, 2, 2, 'FD');
+            doc.text(splitText, MARGIN_L + 5, y + 8);
+
+            y += bodyBoxH + 10;
+
+            // ---------- Diagnóstico ----------
+            doc.setFontSize(8.5);
+            doc.setFont("Helvetica", "bold");
+            doc.setTextColor(...COLOR_PRIMARY_D);
+            doc.text('DIAGNÓSTICO', MARGIN_L, y);
+            y += 5;
+            doc.setFontSize(10.5);
+            doc.setFont("Helvetica", "normal");
+            doc.setTextColor(...COLOR_TEXT);
+            const splitDiagnosis = doc.splitTextToSize(diagnosis, PAGE_W);
+            doc.text(splitDiagnosis, MARGIN_L, y);
+
+            // ---------- Firma y sello (caja en la esquina inferior derecha) ----------
+            // El canvas de firma es muy ancho y bajo (~4:1). Para que quede grande
+            // Y en una esquina (no ocupando toda la página), le damos una caja
+            // amplia pero acotada al lado derecho.
+            const sigBoxW = 120;
+            const sigBoxX = MARGIN_R - sigBoxW;
+            const sigTopY = 220;
+
+            const signatureImage = signaturePad.toDataURL('image/png');
+            const ratio = canvas.width / canvas.height; // ahora más cercano a 1.6:1
+
+            // Ajuste tipo "contain": la firma crece todo lo posible sin pasarse
+            // ni del ancho ni del alto disponibles en la caja.
+            const maxFirmaAnchoBox = sigBoxW - 10; // 110mm
+            const maxFirmaAltoBox = 40;            // mm disponibles en la caja
+            let firmaAlto = Math.min(maxFirmaAltoBox, maxFirmaAnchoBox / ratio);
+            let firmaAncho = firmaAlto * ratio;
+
+            const firmaY = sigTopY;
+            const firmaX = sigBoxX + (sigBoxW - firmaAncho) / 2;
+            doc.addImage(signatureImage, 'PNG', firmaX, firmaY, firmaAncho, firmaAlto);
+
+            const lineY = firmaY + firmaAlto + 3;
+            doc.setDrawColor(...COLOR_MUTED);
+            doc.setLineWidth(0.3);
+            doc.line(sigBoxX + 5, lineY, sigBoxX + sigBoxW - 5, lineY);
+
+            doc.setFontSize(10);
+            doc.setFont("Helvetica", "bold");
+            doc.setTextColor(...COLOR_TEXT);
+            doc.text(doctorName, sigBoxX + sigBoxW / 2, lineY + 5.5, { align: 'center' });
+            doc.setFontSize(8.5);
+            doc.setFont("Helvetica", "normal");
+            doc.setTextColor(...COLOR_MUTED);
+            doc.text(`Matrícula: ${doctorLicense}`, sigBoxX + sigBoxW / 2, lineY + 10, { align: 'center' });
+
+            // Fecha, a la izquierda del bloque de firma
+            doc.setFontSize(9.5);
+            doc.setFont("Helvetica", "bold");
+            doc.setTextColor(...COLOR_TEXT);
+            doc.text('Fecha:', MARGIN_L, firmaY + firmaAlto / 2);
+            doc.setFont("Helvetica", "normal");
+            doc.text(currentDate, MARGIN_L + 14, firmaY + firmaAlto / 2);
+
+            // ---------- Pie de página ----------
+            doc.setDrawColor(...COLOR_LINE);
+            doc.setLineWidth(0.3);
+            doc.line(MARGIN_L, 278, MARGIN_R, 278);
+            doc.setFontSize(7);
+            doc.setFont("Helvetica", "normal");
+            doc.setTextColor(...COLOR_MUTED);
+            doc.text(
+                `Documento generado digitalmente el ${currentDate} a las ${currentTime} hs.`,
+                MARGIN_L, 282
+            );
+
+            // Forzar la descarga del documento
+            doc.save(`${docType}_${patientName.replace(/\s+/g, '_')}.pdf`);
+        });
+    </script>
+</body>
+</html>
